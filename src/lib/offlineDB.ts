@@ -50,7 +50,8 @@ export async function getPatientOffline(id: string) {
 // Get all patients that haven't been synced yet
 export async function getUnsyncedPatients() {
   const db = await getDB()
-  return db.getAllFromIndex('patients', 'synced', false)
+  const allPatients = await db.getAll('patients')
+  return allPatients.filter((p: any) => p.synced === false)
 }
 
 // Mark a patient as synced (used after pushing to Supabase)
@@ -60,7 +61,8 @@ export async function markPatientSynced(offlineId: string, supabaseId: string) {
   if (patient) {
     patient.synced = true
     patient.id = supabaseId
-    await db.put('patients', patient)
+    await db.delete('patients', offlineId) // Delete the old record with offline ID
+    await db.put('patients', patient) // Insert the new record with Supabase ID
   }
 }
 
@@ -95,7 +97,7 @@ export async function getSymptomChecksForPatient(patientId: string) {
 
 // Push all unsynced patients to Supabase when online
 export async function syncToSupabase(supabase: any) {
-  if (!navigator.onLine) return { synced: 0, failed: 0 }
+  if (typeof navigator !== 'undefined' && !navigator.onLine) return { synced: 0, failed: 0 }
 
   const unsynced = await getUnsyncedPatients()
   let synced = 0
