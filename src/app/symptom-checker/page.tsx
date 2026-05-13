@@ -24,7 +24,7 @@ const WELCOME: any = {
   timestamp: new Date().toISOString(),
 }
 
-function SymptomCheckerInner() {
+function SymptomCheckerContent() {
   const searchParams = useSearchParams()
   const patientName  = searchParams.get('patientName')
   const patientId    = searchParams.get('patientId')
@@ -200,8 +200,8 @@ function SymptomCheckerInner() {
 
 export default function SymptomCheckerPage() {
   return (
-    <Suspense fallback={<div className="p-8 text-slate-400 text-sm">Loading...</div>}>
-      <SymptomCheckerInner />
+    <Suspense fallback={<div className="flex justify-center p-8">Loading symptom checker...</div>}>
+      <SymptomCheckerContent />
     </Suspense>
   )
 }

@@ -1,19 +1,23 @@
 // @ts-nocheck
 "use client"
 
-import { useState } from "react"
 import { useChat } from "@ai-sdk/react"
+import { useState } from "react"
 
 export function ChatInterface() {
   const { messages, sendMessage, status } = useChat()
   const [input, setInput] = useState("")
-  
-  const isLoading = status === "in_progress" || status === "error"
+
+  const isLoading = status === 'submitted' || status === 'streaming'
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setInput(e.target.value)
+  }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (!input.trim() || isLoading) return
-    sendMessage({ role: 'user', content: input })
+    sendMessage({ text: input, messageId: Date.now().toString() })
     setInput("")
   }
 
@@ -27,9 +31,11 @@ export function ChatInterface() {
           </div>
         ) : (
           messages.map(m => (
-            <div key={m.id || Math.random().toString()} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-              <div className={`max-w-[80%] rounded-2xl p-4 ${m.role === 'user' ? 'bg-blue-600 text-white' : 'bg-slate-800 text-slate-200 border border-slate-700 shadow-md'}`}>
-                {typeof m.content === 'string' ? m.content : JSON.stringify(m.content)}
+            <div key={m.id} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+              <div className={`max-w-[80%] rounded-2xl p-4 ${m.role === 'user' ? 'bg-indigo-600 text-white' : 'bg-slate-800 text-slate-200 border border-slate-700 shadow-md'}`}>
+                {m.parts?.filter(p => p.type === 'text').map((p, i) => (
+                  <span key={i}>{'text' in p ? p.text : ''}</span>
+                ))}
               </div>
             </div>
           ))

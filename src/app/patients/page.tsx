@@ -1,12 +1,77 @@
 import React from 'react'
 import { Search, Filter, ChevronLeft, ChevronRight, AlertTriangle, Clock, Activity, Users } from 'lucide-react'
 
-const patients = [
-  { initials: 'EJ', name: 'Elena Jimenez', id: 'CL-2983', age: 64, gender: 'Female', status: 'Active Triage', statusColor: 'bg-red-100 text-red-800', risk: 'High Risk', riskColor: 'text-red-600', bp: '145/92', hr: 102, location: 'Sector 7, Unit A', initialsBg: 'bg-red-100 text-red-600' },
-  { initials: 'MW', name: 'Marcus Wright', id: 'CL-1104', age: 42, gender: 'Male', status: 'Recovering', statusColor: 'bg-slate-200 text-slate-700', risk: 'Low Risk', riskColor: 'text-slate-500', bp: '118/74', hr: 72, location: 'Sector 4, Field Clinic', initialsBg: 'bg-indigo-100 text-indigo-600' },
-  { initials: 'SN', name: 'Sarah Nguyen', id: 'CL-4421', age: 29, gender: 'Female', status: 'Observation', statusColor: 'bg-amber-200 text-amber-800', risk: 'Moderate', riskColor: 'text-amber-600', bp: '128/86', hr: 88, location: 'Sector 7, Unit C', initialsBg: 'bg-amber-100 text-amber-600' },
-  { initials: 'DK', name: 'David Kim', id: 'CL-0952', age: 51, gender: 'Male', status: 'Pending Review', statusColor: 'bg-slate-200 text-slate-700', risk: 'Low Risk', riskColor: 'text-slate-500', bp: '120/80', hr: 65, location: 'Sector 1, General Unit', initialsBg: 'bg-blue-100 text-blue-600' },
-]
+export default function PatientsPage() {
+  const [patients, setPatients] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const [search, setSearch] = useState('')
+  const [syncing, setSyncing] = useState(false)
+  const [syncMessage, setSyncMessage] = useState<string | null>(null)
+  const [isMounted, setIsMounted] = useState(false)
+  const [loadError, setLoadError] = useState<string | null>(null)
+  const [isOnline, setIsOnline] = useState(true)
+
+  useEffect(() => {
+    setIsOnline(navigator.onLine)
+    const on = () => setIsOnline(true)
+    const off = () => setIsOnline(false)
+    window.addEventListener('online', on)
+    window.addEventListener('offline', off)
+    return () => { window.removeEventListener('online', on); window.removeEventListener('offline', off) }
+  }, [])
+
+  useEffect(() => { loadPatients() }, [])
+
+  async function loadPatients() {
+    setLoading(true)
+    try {
+      if (typeof navigator !== 'undefined' && navigator.onLine) {
+        // Online: fetch from Supabase
+        const { data, error } = await supabase
+          .from('patients')
+          .select('*')
+          .order('created_at', { ascending: false })
+
+        if (error) throw error
+        setPatients(data || [])
+        setLoadError(null)
+      } else {
+        // Offline: fetch from IndexedDB
+        const offlineData = await getAllPatientsOffline()
+        offlineData.sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+        setPatients(offlineData)
+        setLoadError(null)
+      }
+    } catch (err: any) {
+      console.error('Failed to load patients:', err)
+      setLoadError(err?.message || 'Failed to load patients. The database table may not exist yet.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  async function handleSync() {
+    setSyncing(true); setSyncMsg(null)
+    try {
+      await syncToSupabase()
+      setSyncMsg('Sync complete!')
+      loadPatients()
+    } catch {
+      setSyncMsg('Sync failed — check your connection.')
+    } finally {
+      setSyncing(false)
+      setTimeout(() => setSyncMsg(null), 3000)
+    }
+  }
+
+  const filtered = patients.filter(p =>
+    !query ||
+    p.name?.toLowerCase().includes(query.toLowerCase()) ||
+    p.village?.toLowerCase().includes(query.toLowerCase()) ||
+    p.phone?.includes(query)
+  )
+
+  const offline = patients.filter(p => p.synced === false).length
 
 export default function PatientRegistry() {
   return (
@@ -89,15 +154,56 @@ export default function PatientRegistry() {
             </tbody>
           </table>
         </div>
-        
-        <div className="px-6 py-4 border-t border-slate-100 flex items-center justify-between">
-          <p className="text-sm text-slate-500">Showing 4 of 128 patients</p>
-          <div className="flex items-center gap-1">
-            <button className="w-8 h-8 flex items-center justify-center border border-slate-200 rounded text-slate-500 hover:bg-slate-50"><ChevronLeft size={16} /></button>
-            <button className="w-8 h-8 flex items-center justify-center border border-slate-900 bg-slate-900 text-white rounded font-medium text-sm">1</button>
-            <button className="w-8 h-8 flex items-center justify-center border border-white text-slate-700 hover:bg-slate-50 rounded font-medium text-sm">2</button>
-            <button className="w-8 h-8 flex items-center justify-center border border-white text-slate-700 hover:bg-slate-50 rounded font-medium text-sm">3</button>
-            <button className="w-8 h-8 flex items-center justify-center border border-slate-200 rounded text-slate-500 hover:bg-slate-50"><ChevronRight size={16} /></button>
+      )}
+
+      {/* Error banner */}
+      {loadError && (
+        <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-3 text-sm text-red-700 flex items-start gap-2">
+          <svg className="w-4 h-4 mt-0.5 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+          </svg>
+          <div>
+            <p className="font-medium">Database error</p>
+            <p className="text-red-600 mt-0.5">{loadError}</p>
+            <p className="text-red-500 mt-1 text-xs">👉 Create the <strong>patients</strong> table in your Supabase dashboard first.</p>
+          </div>
+        </div>
+      )}
+
+      {/* Offline banner */}
+      {isMounted && !navigator.onLine && (
+        <div className="bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 text-sm text-amber-700">
+          You are offline. Showing locally saved patients.
+        </div>
+      )}
+
+      {/* Search + filter */}
+      <div className="flex gap-3">
+        <div className="relative flex-1">
+          <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+          <input
+            type="search"
+            placeholder="Search by name, village, or phone..."
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            className="input pl-10"
+          />
+        </div>
+        <button className="btn-md btn-secondary gap-2">
+          <Filter size={14} /> Filter
+        </button>
+      </div>
+
+      {/* Stats strip */}
+      <div className="grid grid-cols-3 gap-3">
+        {[
+          { label: 'Total',   value: patients.length,               color: 'text-slate-900' },
+          { label: 'Offline', value: offline,                        color: offline > 0 ? 'text-amber-600' : 'text-slate-900' },
+          { label: 'Results', value: filtered.length,               color: 'text-emerald-600' },
+        ].map(s => (
+          <div key={s.label} className="card px-4 py-3 text-center">
+            <p className={`text-xl font-bold ${s.color}`}>{s.value}</p>
+            <p className="text-[11px] text-slate-400 font-medium">{s.label}</p>
           </div>
         </div>
       </div>
