@@ -4,8 +4,8 @@ import SidebarNav from '../components/SidebarNav'
 import TopHeader from '../components/TopHeader'
 
 export const metadata: Metadata = {
-  title: 'CareLink Pro — Field Unit 04',
-  description: 'Clinical overview and patient management system',
+  title: 'ASHA AI — Field Unit 04',
+  description: 'AI-powered clinical overview and patient management system',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

@@ -1,5 +1,6 @@
 'use client'
 import React, { useState, useEffect } from 'react'
+import Link from 'next/link'
 import { Search, Filter, AlertTriangle, Clock, Activity, Users, Plus, Download, RefreshCw, Smartphone } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { syncToSupabase, getAllPatientsOffline } from '@/lib/offlineDB'
@@ -76,6 +77,33 @@ export default function PatientsPage() {
 
   const offlineCount = patients.filter(p => p.synced === false).length
 
+  const handleExport = () => {
+    if (patients.length === 0) {
+      alert('No patient records to export.')
+      return
+    }
+    const headers = ['ID', 'Name', 'Age', 'Gender', 'Village', 'Phone', 'Status', 'Notes', 'Enrolled Date']
+    const rows = patients.map(p => [
+      p.id,
+      `"${p.name || ''}"`,
+      p.age ?? '',
+      p.gender || '',
+      `"${p.village || ''}"`,
+      p.phone || '',
+      p.status || 'Active',
+      `"${(p.notes || '').replace(/"/g, "'")}"`,
+      p.created_at ? new Date(p.created_at).toLocaleDateString() : ''
+    ])
+    const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n')
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `ASHA_AI_Patients_${new Date().toISOString().slice(0, 10)}.csv`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
   return (
     <div className="space-y-8 animate-fade-in max-w-[1400px] mx-auto pb-12">
       
@@ -100,10 +128,13 @@ export default function PatientsPage() {
             <RefreshCw size={16} className={syncing ? 'animate-spin' : ''} />
             {syncing ? 'Syncing...' : 'Sync Offline Data'}
           </button>
-          <button className="flex items-center gap-2 px-5 py-2.5 bg-[#0f172a] hover:bg-slate-800 text-white font-bold text-sm rounded-xl transition-all shadow-lg shadow-blue-900/10">
+          <Link
+            href="/patients/new"
+            className="flex items-center gap-2 px-5 py-2.5 bg-[#0f172a] hover:bg-slate-800 text-white font-bold text-sm rounded-xl transition-all shadow-lg shadow-blue-900/10"
+          >
             <Plus size={18} />
             Enroll Patient
-          </button>
+          </Link>
         </div>
       </div>
 
@@ -151,7 +182,10 @@ export default function PatientsPage() {
             <Filter size={18} />
             Filter
           </button>
-          <button className="flex-1 md:flex-none flex items-center justify-center gap-2 px-5 py-3.5 bg-white border border-slate-200 rounded-2xl text-sm font-bold text-slate-700 hover:bg-slate-50 transition-all">
+          <button
+            onClick={handleExport}
+            className="flex-1 md:flex-none flex items-center justify-center gap-2 px-5 py-3.5 bg-white border border-slate-200 rounded-2xl text-sm font-bold text-slate-700 hover:bg-slate-50 transition-all active:scale-[0.98]"
+          >
             <Download size={18} />
             Export
           </button>
