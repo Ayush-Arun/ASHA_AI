@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import './globals.css'
 import Link from 'next/link'
 import NotificationPopover from '../components/NotificationPopover'
+import AuthNav from '../components/AuthNav'
 
 export const metadata: Metadata = {
   title: 'ASHA AI',
@@ -19,10 +20,10 @@ export default function RootLayout({
 
         {/* ── Navbar ── */}
         <nav className="bg-white border-b border-gray-200 sticky top-0 z-50">
-          <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
+          <div className="w-full px-6 py-3 flex items-center gap-6">
 
-            {/* Logo */}
-            <Link href="/" className="flex items-center gap-2">
+            {/* Left — Logo (pinned to far left) */}
+            <Link href="/" className="flex items-center gap-2 shrink-0 mr-auto">
               <div className="w-8 h-8 bg-green-700 rounded-lg flex items-center justify-center">
                 <span className="text-white text-xs font-bold">A</span>
               </div>
@@ -34,28 +35,22 @@ export default function RootLayout({
               </div>
             </Link>
 
-            {/* Nav links */}
+            {/* Center — Nav links */}
             <div className="flex items-center gap-1">
-              <Link
-                href="/"
-                className="px-3 py-1.5 text-sm text-gray-600 hover:text-green-700 hover:bg-green-50 rounded-lg font-medium transition-colors"
-              >
+              <Link href="/" className="px-3 py-1.5 text-sm text-gray-600 hover:text-green-700 hover:bg-green-50 rounded-lg font-medium transition-colors">
                 Home
               </Link>
-              <Link
-                href="/patients"
-                className="px-3 py-1.5 text-sm text-gray-600 hover:text-green-700 hover:bg-green-50 rounded-lg font-medium transition-colors"
-              >
+              <Link href="/patients" className="px-3 py-1.5 text-sm text-gray-600 hover:text-green-700 hover:bg-green-50 rounded-lg font-medium transition-colors">
                 Patients
               </Link>
-              <Link
-                href="/symptom-checker"
-                className="px-3 py-1.5 text-sm text-gray-600 hover:text-green-700 hover:bg-green-50 rounded-lg font-medium transition-colors"
-              >
+              <Link href="/symptom-checker" className="px-3 py-1.5 text-sm text-gray-600 hover:text-green-700 hover:bg-green-50 rounded-lg font-medium transition-colors">
                 Symptom Checker
               </Link>
               <NotificationPopover />
             </div>
+
+            {/* Right — Auth (Login/Signup or User profile) */}
+            <AuthNav />
 
           </div>
         </nav>
