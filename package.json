@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@ai-sdk/google": "^3.0.64",
+    "@ai-sdk/react": "^3.0.182",
     "@pinecone-database/pinecone": "^2.2.0",
     "@radix-ui/react-dialog": "^1.0.5",
     "@radix-ui/react-progress": "^1.0.3",
