@@ -3,7 +3,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import {
   Users, FileText, Send, Activity,
-  HeartPulse, Wind, Brain, Lightbulb,
+  HeartPulse, Wind, Brain, MessageSquare, Lightbulb,
   ArrowRight, CheckCircle2, ChevronDown, ChevronUp
 } from 'lucide-react'
 
@@ -165,6 +165,7 @@ export default function HomePage() {
               {[
                 { label: 'Vitals Scan', icon: HeartPulse, href: '/health-monitor' },
                 { label: 'Breath AI', icon: Wind, href: '/respiratory-assessment' },
+                { label: 'Symptom AI', icon: MessageSquare, href: '/symptom-checker' },
               ].map((tool, i) => (
                 <Link key={i} href={tool.href} className="bg-slate-50 hover:bg-slate-100 rounded-xl p-4 flex flex-col items-center justify-center text-center transition-colors border border-slate-100">
                   <tool.icon size={20} className="text-slate-700 mb-2" />

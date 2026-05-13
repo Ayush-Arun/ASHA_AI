@@ -4,12 +4,13 @@ import { usePathname } from 'next/navigation'
 import {
   LayoutDashboard, Users,
   Activity, BookOpen,
-  LogOut, Plus
+  LogOut, Plus, MessageSquare
 } from 'lucide-react'
 
 const nav = [
   { href: '/',                       label: 'Dashboard',      icon: LayoutDashboard },
   { href: '/patients',               label: 'Patients',       icon: Users },
+  { href: '/symptom-checker',        label: 'Symptom AI',     icon: MessageSquare },
   { href: '/respiratory-assessment', label: 'Clinical Tools', icon: Activity },
   { href: '/health-education',       label: 'Education',      icon: BookOpen },
 ]
