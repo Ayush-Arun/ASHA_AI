@@ -5,15 +5,11 @@ import NotificationPopover from '../components/NotificationPopover'
 import AuthNav from '../components/AuthNav'
 
 export const metadata: Metadata = {
-  title: 'ASHA AI',
-  description: 'Empowering frontline health workers with AI-assisted tools',
+  title: 'ASHA AI — Frontline Health Intelligence',
+  description: 'AI-powered clinical tools for frontline community health workers across rural India',
 }
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <body className="bg-gray-50 min-h-screen">
@@ -64,9 +60,7 @@ export default function RootLayout({
         <footer className="border-t border-gray-200 mt-12 py-6 text-center text-xs text-gray-400">
           ASHA AI — Built for rural frontline health workers · Hackathon 2025
         </footer>
-
       </body>
     </html>
   )
 }
-
